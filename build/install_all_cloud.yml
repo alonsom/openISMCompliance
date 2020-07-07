@@ -1,0 +1,40 @@
+---
+# This playbook define the whole Logstash and elk clients install
+# To run: 
+#   ansible-playbook  install_all.yml 
+#
+# Created by Alonso Marquez
+#
+#
+- import_playbook: get_server.yml  
+- import_playbook: init.yml    
+- import_playbook: res.yml
+# vm automatically add the machine to the group below
+- import_playbook: vm.yml
+  vars:
+    vm_group: "logstash" 
+    vm_name: "logstash_remote" 
+- import_playbook: get_vm.yml
+  vars:
+    vm_group: "logstash" 
+    vm_name: "logstash_remote"      
+- import_playbook: install_logstash_server.yml
+  vars:
+    vm_group: "logstash" 
+- import_playbook: install_elk_client_remoteServer.yml
+- import_playbook: test_logstash.yml 
+  vars:
+    vm_group: "logstash" 
+- import_playbook: schedule_logstash_remoteServer.yml 
+  vars:
+    vm_group: "logstash" 
+
+
+
+
+
+
+  
+
+
+      

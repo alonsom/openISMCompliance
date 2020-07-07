@@ -1,0 +1,20 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install Logstash
+# ==============================================================================
+- name: check if logstash_yml exists
+  stats:
+    path: "C:/{{logstash_folder}}/config/logstash.yml"
+  register: logstash_yml
+  
+- name: Copy logstash zip 
+  when: logstash_yml.stat is defined and not logstash_yml.stat.exists 
+  win_copy:
+    src: "/tmp/{{logstash_zip}}"
+    dest: "C:/Windows\\Temp/{{logstash_zip}}"
+  
+- name: Unzip Java zip (please notice using C drive at source because Powershell call)
+  when: logstash_yml.stat is defined and not logstash_yml.stat.exists 
+  win_shell: "PowerShell.exe -ExecutionPolicy UnRestricted Expand-Archive -Path C:/Windows\\Temp/{{logstash_zip}} -DestinationPath C:"
+...
+

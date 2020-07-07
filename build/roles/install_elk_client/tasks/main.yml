@@ -1,0 +1,37 @@
+---
+# ==============================================================================
+# This is the main task definition file for this role.
+# ==============================================================================
+- name: Fail if OS is not supported
+  fail:
+    msg: "OS family {{ansible_os_family}} not supported for the ELK client role"
+  when: ansible_os_family != 'RedHat' and ansible_os_family != 'Windows' and 'CYGWIN' not in ansible_os_family
+    
+- name: Install ELK in local Windows Server
+  include_tasks: install_elk_local_client.yml
+  when: "'CYGWIN' in ansible_os_family"
+  
+- name: Configure ELK in local Windows Server
+  include_tasks: configure_elk_local_client.yml
+  when: "'CYGWIN' in ansible_os_family" 
+
+- name: Install ELK in Windows client
+  include_tasks: install_elk_win_client.yml
+  when: ansible_os_family == 'Windows' 
+  
+- name: Configure ELK Windows client
+  include_tasks: configure_elk_win_client.yml
+  when: ansible_os_family == 'Windows'
+      
+- name: Become block
+  block:   
+    - name: Install ELK Linux client
+      include_tasks: install_elk_linux_client.yml
+      when: ansible_os_family == 'RedHat'
+  
+    - name: Configure ELK Linux client
+      include_tasks: configure_elk_linux_client.yml
+      when: ansible_os_family == 'RedHat'
+  become: yes
+
+...

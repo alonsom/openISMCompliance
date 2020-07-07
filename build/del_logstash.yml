@@ -1,0 +1,33 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Remove logstash server
+  hosts: "{{vm_group}}"
+  gather_facts: no
+  any_errors_fatal: no
+
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_delete == 'yes'
+      setup:
+        filter: ansible_*
+        
+    - name: Include logstash delete server role
+      when: confirm_delete == 'yes'
+      include_role:
+        name: del_logstash
+      vars:
+        ansible_user: "{{ initial_admin_user_name }}"
+        ansible_ssh_pass: "{{ initial_admin_user_password }}"
+        ansible_sudo_pass: "{{ initial_admin_user_password }}"
+
+  vars_prompt:
+    - name: "confirm_delete"
+      prompt: "Please confirm the removal of logstash (yes/no)"
+      private: no
+      default: 'no' 
+...

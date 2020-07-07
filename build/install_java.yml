@@ -1,0 +1,22 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Install and configure Java
+  hosts: "logstash"
+  gather_facts: yes
+  any_errors_fatal: no
+
+
+  # Define static variables required to execute the play
+  tasks:      
+    - name: Include java  role
+      include_role:
+        name: install_java
+#      vars:
+#        ansible_user: "{{ initial_admin_user_name }}"
+#        ansible_ssh_pass: "{{ initial_admin_user_password }}"
+#        ansible_sudo_pass: "{{ initial_admin_user_password }}"
+...

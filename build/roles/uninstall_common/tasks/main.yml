@@ -1,0 +1,19 @@
+# This playbook uninstall the splunk user and group
+---
+- name: remove splunk user
+  become: yes
+  become_user: root
+  tags: 
+   - configuration
+   - security
+  user: name={{user_name}} state=absent remove=yes
+
+- name: remove splunk group
+  become: yes
+  become_user: root
+  tags: 
+   - configuration
+   - security
+  group: name={{user_name}} state=absent
+
+

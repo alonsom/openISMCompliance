@@ -1,0 +1,16 @@
+---
+# This playbook checkin all changes in the current template to the git enterprise repository
+- name: Add recent changes
+  tags:
+   - git --all
+  shell: "git add --all :/"
+  
+- name: Commit recent changes
+  tags:
+   - git
+  shell: "git commit -a -m \"{{commit_msg}}\""
+  
+# Commit recent changes
+- name: Commit changes
+  command: "git push origin master" 
+

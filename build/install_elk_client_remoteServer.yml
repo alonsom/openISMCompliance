@@ -1,0 +1,34 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Install and configure elastic clients
+  hosts: "all"
+  gather_facts: no
+  any_errors_fatal: no
+    
+  # Define static variables required to execute the play
+  tasks:
+    - name: Set the remote logstash server stored in hostvars.server.public_ip as the server_host
+      when: confirm_elk_client_create == 'yes'
+      set_fact:
+        server_host: "{{hostvars.server.public_ip}}"
+        
+    - name: Find the OS of the machine
+      when: confirm_elk_client_create == 'yes' and 'clients' in group_names
+      setup:
+        filter: ansible_*
+        
+    - name: Include elastic_client server role 
+      include_role:
+        name: install_elk_client
+      when: confirm_elk_client_create == 'yes' and 'clients' in group_names
+        
+  vars_prompt:
+    - name: "confirm_elk_client_create"
+      prompt: "Please confirm the setup of ELK client"
+      private: no
+      default: 'no' 
+...

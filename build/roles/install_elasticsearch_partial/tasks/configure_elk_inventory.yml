@@ -1,0 +1,15 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure the
+# inventory for an ELK server.
+# ==============================================================================
+
+# TODO: I have no idea where the Elk inventory file goes, so... making a guess
+# here. Better ask Aaron how this is supposed to work!
+- name: Create ELK inventory file from template
+  template:
+    src: elk/elk_inventory.j2
+    dest: "{{ elk_inventory_file_path }}"
+    owner: "{{ elk_application_user }}"
+    group: "{{ elk_application_group }}"
+    mode: 0644

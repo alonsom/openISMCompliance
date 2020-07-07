@@ -1,0 +1,61 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will test an ELK
+# server.
+# ============================================================================== 
+
+    - name: Configure Logstash test response script
+      copy:
+        src: testResponse.ps1
+        dest: "{{logstash_cygwin_config_path}}/testResponse.ps1"
+        force: yes
+ 
+    - name: Update the test response filter
+      template:
+        src: testFilterResponse.conf
+        dest: "{{logstash_cygwin_config_path}}/testFilterResponse.conf"
+        force: yes
+ 
+    - name: Update the sendEmail bat
+      template:
+        src: sendEmail.bat
+        dest: "{{logstash_cygwin_config_path}}/sendEmail.bat"
+        force: yes
+
+    - name: Update the sendEmail.ps1 script
+      template:
+        src: sendEmail.ps1
+        dest: "{{logstash_cygwin_config_path}}/sendEmail.ps1"
+        force: yes
+        
+    - name: Ensure non-whitelisted.log does not exist
+      file:
+        path: "{{logs_path}}/non-whitelisted.log"
+        state: absent
+ 
+    - name: Ensure Logstash is not running
+      shell: "Taskkill /IM java.exe /F" 
+      ignore_errors: yes
+      
+    - name: Test a trivial response in Logstash
+      when: confirm_test == 'yes'
+      shell: "powershell.exe -ExecutionPolicy UnRestricted -File '{{logstash_config_path}}/testResponse.ps1'"
+      register: run_logstash_test
+      async: 1600  # Maximum runtime in seconds. Adjust as needed.
+      poll: 0
+
+    - debug:
+        msg: "Waiting for receiving logs from ELK clients with {{run_logstash_test}}"  
+        
+    - name: check if non-whitelisted.log was created
+      wait_for:
+        path: "{{logs_path}}/non-whitelisted.log"
+        state: present
+        msg: Timeout waiting for a compliance violation
+        timeout: 1650
+      register: test_log
+      
+    - name: Ensure the task created above is killed
+      shell: "Taskkill /IM java.exe /F" 
+...
+

@@ -1,0 +1,33 @@
+---
+#
+# Created by Alonso Marquez
+#
+
+- hosts: local_logstash
+  gather_facts: no
+
+  # Define static variables required to execute the play
+  tasks:
+    - name: Get the ip of the remote logstash machine stored in hostvars.server.public_ip
+      include_role: 
+        name: run_azure_cli
+      vars:
+        cli_cmd: "network public-ip"
+        context: "--location {{region}} --allocation-method static --idle-timeout 4"
+        obj_name: "{{vm_name}}"
+        apply:
+          delegate_to: localhost
+        
+    - name: Add vm to inventory
+      add_host:
+        hostname: "{{public_ip}}"
+        ansible_hostname: "{{vm_name}}"
+        ansible_user: "{{initial_admin_user_name}}"
+        ansible_password: "{{initial_admin_user_password}}"
+        is_remote: yes
+        groups: 
+          - "{{vm_group}}" 
+          - "linux"
+          - "RedHat"
+...
+    

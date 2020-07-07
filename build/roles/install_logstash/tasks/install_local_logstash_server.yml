@@ -1,0 +1,15 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install Logstash
+# ==============================================================================    
+- name: check if logstash_yml exists
+  stat:
+    path: "{{logstash_cygwin_config_path}}/logstash.yml"
+  register: logstash_yml
+    
+- name: Unzip Java zip (please notice using C drive at source because Powershell call)
+  when: logstash_yml.stat is defined and not logstash_yml.stat.exists 
+  shell: "cmd /C PowerShell.exe -ExecutionPolicy UnRestricted Expand-Archive -Path C:/cygwin64/tmp/{{logstash_zip}} -DestinationPath C:/"
+...
+
+

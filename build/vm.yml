@@ -1,0 +1,23 @@
+---
+# This playbook provision a machine suitable for the enterprise CMS
+# To run for all full instances: 
+#   ansible-playbook prov.yml
+#
+# Created by Alonso Marquez
+#
+
+- hosts: localhost
+  gather_facts: no
+  
+  roles:
+    - { role: run_azure_cli, cli_cmd: "network public-ip", context: "--location {{region}} --allocation-method static --idle-timeout 4", obj_name: "{{vm_name}}" , when:  confirm_create == 'yes'}
+    - { role: run_azure_cli, cli_cmd: "network nic", obj_name: "{{vm_name}}Nic", context: "--location {{region}} --public-ip-address {{vm_name}} --subnet {{VNSubnet}} --vnet-name {{VN}} --network-security-group {{NSG}}" , when:  confirm_create == 'yes'}   
+    - { role: run_azure_cli_create_vm, vm_image: "{{vm_RHEL}}" , when:  confirm_create == 'yes'} 
+    
+  vars_prompt:
+    - name: "confirm_create"
+      prompt: "Please confirm the creation of VM {{vm_name}}"
+      private: no
+      default: 'no' 
+...
+    

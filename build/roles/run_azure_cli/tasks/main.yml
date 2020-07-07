@@ -1,0 +1,49 @@
+---
+# This role executes a azure CLI cmd
+- set_fact:
+    extra_arg: ""
+  when: cli_cmd=='group'
+
+- set_fact:
+    extra_arg: "--resource-group {{RSG}}"
+  when: cli_cmd!='group' and 'network vnet ' not in cli_cmd
+
+- set_fact:
+    extra_arg: "--resource-group {{RSG}} --vnet-name {{vnet_name}}"
+  when: vnet_name is defined and 'network vnet ' in cli_cmd
+ 
+- name:  "run az {{cli_cmd}} show {{extra_arg}} --name {{obj_name}}"
+  shell: "cmd /C az {{cli_cmd}} show {{extra_arg}} --name {{obj_name}}"
+  ignore_errors: True
+  register: obj_exists1
+  
+- name: "run az {{cli_cmd}} create {{extra_arg}} {{context}} --name {{obj_name}}"
+  shell: "cmd /C az {{cli_cmd}} create {{extra_arg}} {{context}} --name {{obj_name}}"
+  when: obj_exists1.failed!=False
+  
+- name:  "run az {{cli_cmd}} show {{extra_arg}} --name {{obj_name}}"
+  when: cli_cmd=='network public-ip'
+  shell: "cmd /C az {{cli_cmd}} show {{extra_arg}} --name {{obj_name}} | grep 'ipAddress' | cut -d ':' -f 2 | cut -d ',' -f 1 | cut -d '\"' -f 2"
+  ignore_errors: True
+  register: ip_address
+
+- name: Defining new group found
+  set_fact:
+    resource_group: "{{RSG}}"
+  when: cli_cmd=='group'
+  
+- name: Defining new vnet found
+  set_fact:
+    vnet_name: "{{obj_name}}"
+  when: cli_cmd=='network vnet'
+
+- name: Defining new public-ip found
+  when: cli_cmd=='network public-ip'
+  set_fact:
+    public_ip: "{{ip_address.stdout }}"
+  
+- name: Display public_ip
+  when: cli_cmd=='network public-ip'
+  debug:
+    msg: "public_ip={{public_ip}}"
+...

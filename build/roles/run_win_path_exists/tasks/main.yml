@@ -1,0 +1,27 @@
+---
+- name: "Check if path {{path}} exists"
+  when: ansible_connection!='local'
+  win_stat: 
+    path: "{{path}}"
+  register: path_stat
+ 
+- set_fact:
+    "{{register}}": "{{path_stat}}"
+  when: ansible_connection!='local'
+  
+- name: "Check if path {{path}} exists"
+  when: ansible_connection=='local'
+  shell: "ls '{{path}}'"
+  register: path_found
+  ignore_errors: yes
+  
+- set_fact:
+    exists: "{{path_found is defined and not path_found.failed}}"
+  when: ansible_connection=='local'
+  
+- set_fact:
+    "{{register}}": 
+      stat: 
+        exists: "{{exists}}" 
+  when: ansible_connection=='local' and register is defined
+...

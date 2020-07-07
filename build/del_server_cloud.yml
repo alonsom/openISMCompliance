@@ -1,0 +1,18 @@
+---
+# This playbook define the whole Elk and Logstash life-cycle
+# To run: 
+#   ansible-playbook del_server_cloud.yml 
+##
+# Created by Alonso Marquez
+#
+#
+- import_playbook: get_server.yml 
+- import_playbook: init.yml   
+- import_playbook: del_vm.yml
+  vars:
+    vm_group: "logstash"  
+    vm_name: "logstash_remote"
+- import_playbook: del_res.yml
+- import_playbook: del_elk_client.yml 
+
+      

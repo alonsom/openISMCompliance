@@ -1,0 +1,25 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Install and configure Java
+  hosts: "{{vm_group}}"
+  gather_facts: yes
+  any_errors_fatal: no
+
+
+  # Define static variables required to execute the play
+  tasks:
+    - name: Include java  role
+      when: confirm_java_delete == 'yes'
+      include_role:
+        name: del_java
+
+  vars_prompt:
+    - name: "confirm_java_delete"
+      prompt: "Please confirm the removal of Java"
+      private: no
+      default: 'no' 
+...

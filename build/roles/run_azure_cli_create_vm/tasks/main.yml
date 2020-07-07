@@ -1,0 +1,28 @@
+---
+# This role create a new azure vm
+- name:  "run az vm show --resource-group {{RSG}} --name {{vm_name}}"
+  shell: "cmd /C az vm show --resource-group {{RSG}} --name {{vm_name}}"
+  ignore_errors: True
+  register: obj_exists
+    
+- name: az create vm
+  tags:
+   - install
+  shell: "cmd /C az vm create \
+    --resource-group {{RSG}} \
+    --name {{vm_name}} \
+    --location {{region}} \
+    --image {{vm_image}} \
+    --size {{machine_size}} \
+    --os-disk-name {{vm_name}}OSDisk \
+    --os-disk-caching 'ReadOnly' \
+    --storage-sku 'Premium_LRS' \
+    --authentication-type 'password' \
+    --admin-username {{initial_admin_user_name}} \
+    --admin-password {{initial_admin_user_password}} \
+    --nics {{vm_name}}Nic \
+    --generate-ssh-keys"
+  when: obj_exists.failed!=False
+  register: vm_created
+...
+  

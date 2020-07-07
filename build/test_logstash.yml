@@ -1,0 +1,30 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tests for ELK
+# servers.
+# ==============================================================================
+
+- name: Execute both Logstash and the Beat client in the same server
+  hosts: "{{vm_group}}"
+  gather_facts: no
+  connection: local
+  any_errors_fatal: no
+    
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_test == 'yes'
+      setup:
+        filter: ansible_*
+
+    - name: Include logstash server role
+      when: confirm_test == 'yes'
+      include_role:
+        name: test_logstash
+ 
+  vars_prompt:
+    - name: "confirm_test"
+      prompt: "Do you want the start the testing of Logstash integration with ELK client (yes/no)"
+      private: no
+      default: 'no' 
+...

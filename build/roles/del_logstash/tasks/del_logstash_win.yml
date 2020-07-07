@@ -1,0 +1,26 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will delete Logstash
+# ==============================================================================
+- set_fact:
+    logstash_path: "C:/{{logstash_folder}}"
+
+- name: check if sw folder exist already
+  stat:
+    path: "{{logstash_path}}"
+  register: sw_folder
+
+- name: Check the scheduled task
+  win_shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Logstash' 
+  register: getScheduledTask
+
+- name: Remove scheduled task 
+  when: "getScheduledTask is defined and 'Logstash' in getScheduledTask.stdout"
+  win_shell: "echo 'Y' | powershell.exe -ExecutionPolicy UnRestricted Unregister-ScheduledTask -TaskName Logstash"
+  
+- name: Remove sw folder
+  when: sw_folder.stat is defined and sw_folder.stat.exists 
+  win_file: 
+    path: "{{logstash_path}}"
+    state: absent
+...

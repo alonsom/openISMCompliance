@@ -1,0 +1,58 @@
+---
+# ==============================================================================
+# This Ansible playbook installs logstash in a local or remote server
+# ==============================================================================
+
+- name: Install and configure logstash server
+  hosts: "{{vm_group}}"
+  gather_facts: no
+  any_errors_fatal: no
+
+
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_logstash_create == 'yes'
+      setup:
+        filter: ansible_*
+        
+    - name: debug dynamic inventory
+      when: is_remote is defined
+      debug:
+        msg: "inventory_hostname={{inventory_hostname}}"
+            
+    - name: Set the logstash server as the remote server
+      when: confirm_logstash_create == 'yes' and is_remote is defined
+      set_fact:
+        server_host: "{{inventory_hostname}}"
+
+    - name: Set the logstash server as the local server
+      when: confirm_logstash_create == 'yes' and is_remote is not defined
+      set_fact:
+        server_host: "{{hostvars.server.ansible_host}}"
+        
+    - name: Include java  role
+      when: confirm_logstash_create == 'yes'
+      include_role:
+        name: install_java
+#      vars:
+#        ansible_user: "{{ initial_admin_user_name }}"
+#        ansible_ssh_pass: "{{ initial_admin_user_password }}"
+#        ansible_sudo_pass: "{{ initial_admin_user_password }}"
+        
+    - name: Include logstash server role
+      when: confirm_logstash_create == 'yes'
+      include_role:
+        name: install_logstash
+#      vars:
+#        ansible_user: "{{ initial_admin_user_name }}"
+#        ansible_ssh_pass: "{{ initial_admin_user_password }}"
+#        ansible_sudo_pass: "{{ initial_admin_user_password }}"
+#        logstash_role: forwarder
+
+  vars_prompt:
+    - name: "confirm_logstash_create"
+      prompt: "Please confirm the setup of a logstash server for collecting logs (yes/no)"
+      private: no
+      default: 'no' 
+...

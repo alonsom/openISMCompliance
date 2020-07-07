@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install an ELK server.
+# ==============================================================================
+
+- name: Install Elastic Pre-conditions
+  yum:
+    name: "{{ pre_package_list }}"
+    state: present
+  vars:
+    pre_package_list:
+      - java
+#      - apt-transport-https
+      - ntp
+      - python
+#      - tcpdump
+      - wget
+      - openssl
+      - curl
+      
+- name: Add elastic repository
+  yum_repository:
+    name: elastic-7.x
+    description: Elastic reposito
+    file: external_repos
+    baseurl: https://artifacts.elastic.co/packages/7.x/yum
+    
+- name: Install ELK packages
+  yum:
+    name: "{{ elk_package_list }}"
+    lock_timeout: 10
+    disable_gpg_check: yes
+  async: 1000
+  poll: 0
+  register: yum_ansible_sleeper
+  vars:
+    elk_package_list:
+      - elasticsearch
+      - kibana
+
+- name: Check Yum Status
+  async_status:
+    jid: "{{yum_ansible_sleeper.ansible_job_id}}"
+  register: job_result
+  until: job_result.finished
+  retries: 30
+
+# Why ??
+- name: Stop the firewall service
+  systemd:
+    name: firewalld
+    state: stopped

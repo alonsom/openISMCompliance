@@ -1,0 +1,20 @@
+---
+# This role instantiate and copy a template
+- set_fact:
+    force: no
+  when: force is not defined
+
+- name: "{{src}} to {{dest}} force={{force}}"  
+  when: ansible_connection=='local'
+  template: 
+    src: "{{src}}"
+    dest: "{{dest}}"
+    force: "{{force}}"
+    
+- name: "{{src}} to {{dest}} force={{force}}"
+  when: ansible_connection!='local'
+  win_template: 
+    src: "{{src}}"
+    dest: "{{dest}}"
+    force: "{{force}}"
+...

@@ -1,0 +1,87 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure an ELK
+# server.
+# ==============================================================================
+
+- name: Configure Logstash test filter
+  copy:
+    src: logstash.yml
+    dest: "{{logstash_config_path}}/logstash.yml"
+    force: yes
+    
+- set_fact:
+    ssl_certificate_folder: "/etc/pki/tls/certs"
+    ssl_key_folder: "/etc/pki/tls/private"
+    
+### The task after this one is not idempotent. This check changes that.
+### Check whether an SSL cert already exists and store the result.
+- name: check if certs exist already
+  when: False
+  stat:
+    path: "{{ssl_certificate_folder}}/logstash-forwarder.crt"
+  register: logstash_cert
+
+### Create an SSL certificate if one doesnt already exist.
+### the only real possible variable in the command is the
+### subject name. However it is recommended to leave it as "ELK".
+### multiname subject names (e.g elk.example.com) are NOT supported
+### and will break filebeats ability to talk to logstash.
+### If you do change ELK to some other word, update the client install
+### script to reflect the new name (in the host file edit task)
+- name: generate OpenSSL certificate
+  when: False
+  command: "openssl req -subj '/CN=ELK/' -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout {{ssl_key_folder}}/logstash-forwarder.key -out {{ssl_certificate_folder}}/logstash-forwarder.crt"
+  #when: not logstash_cert.stat.exists
+
+### We pull the SSL cert back to our ansible machine.
+### This is because we will push it out to all clients later
+### and having it stored locally makes that push easier.
+### It also means the ansible machine is one step closer to
+### being set up for log gathering if thats your thing.
+- name: pull SSL cert to Ansible host for future client installs
+  when: False
+  fetch:
+    src: "{{ssl_certificate_folder}}/logstash-forwarder.crt"
+    dest: "{{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+    flat: yes
+
+#
+# Install any required plugin
+#
+- name: Install the logstash-output-exec plugin (required for output to a local file)
+  command: 
+    cmd: ./logstash-plugin install logstash-output-exec
+    chdir: "{{logstash_bin_path}}"
+
+- name: Install the logstash-filter-translate plugin 
+  command: 
+  args:
+    cmd: ./logstash-plugin install logstash-filter-translate
+    chdir: "{{logstash_bin_path}}"
+    
+- name: Configure Logstash test filter
+  template:
+    src: testFilter.conf
+    dest: "{{logstash_config_path}}/testFilter.conf"
+    force: yes
+
+- name: Configure Logstash test filter script
+  copy:
+    src: test.ps1
+    dest: "{{logstash_config_path}}/test.ps1"
+    force: yes
+
+- name: Configure Logstash filter file
+  template:
+    src: windows_approved_executables.yml
+    dest: "/etc/logstash/windows_approved_executables.yml"
+    
+- name: Enable logstash input port   
+  firewalld:
+    port: 5044/tcp
+    permanent: yes
+    immediate: yes
+    state: enabled
+...
+

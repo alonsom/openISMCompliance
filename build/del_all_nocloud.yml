@@ -1,0 +1,23 @@
+---
+# This playbook define the whole Logstash and elk clients install
+# To run: 
+#   ansible-playbook  install_all.yml 
+#
+# Created by Alonso Marquez
+#
+#
+- import_playbook: get_server.yml 
+- import_playbook: del_logstash.yml
+  vars:
+    vm_group: "local_logstash"  
+- import_playbook: del_java.yml 
+  vars:
+    vm_group: "local_logstash" 
+- import_playbook: del_elk_client.yml 
+
+
+
+  
+
+
+      

@@ -1,0 +1,31 @@
+# This task open a firewall port to Centos/RHEL version 7
+- name: "Apply the given operation {add,remove} to the given port (RedHat 7)"
+  become: yes
+  become_user: root
+  tags: deploy
+  command: firewall-cmd --zone=public --{{operation}}-port={{portNum}}/tcp --permanent
+  when: ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' )
+
+# This task make the change effective immediately
+- name: "Reload the firewall (RedHat 7)"
+  become: yes
+  become_user: root
+  tags: deploy
+  command: firewall-cmd --reload
+  when: ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' )
+  
+# This task open a firewall port to Ubuntu
+- name: "Apply the add operation to the given port (Ubuntu)"
+  become: yes
+  become_user: root
+  tags: deploy
+  command: ufw allow {{portNum}}
+  when: (ansible_distribution == 'Debian' and operation == 'add')
+
+# This task open a firewall port to Ubuntu
+- name: "Apply the remove operation to the given port (Ubuntu)"
+  become: yes
+  become_user: root
+  tags: deploy
+  command: ufw deny {{portNum}}
+  when: (ansible_distribution == "Ubuntu" and operation == 'remove')

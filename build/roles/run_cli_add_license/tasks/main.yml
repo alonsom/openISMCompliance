@@ -1,0 +1,8 @@
+---
+# This playbook run a search in the local host
+# Repeated attempts to add a license will give an error. We ignore this error.
+- name: run cli cmd
+  tags:
+   - test
+  shell: "/opt/{{splunk_folder}}/bin/splunk add licenses /opt/splunk/etc/Splunk.License -auth admin:{{splunk_admin_passwd}}"
+  ignore_errors: yes

@@ -1,0 +1,97 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure an ELK
+# server.
+# ==============================================================================
+
+- set_fact:
+    ansible_ssl_certificate_folder: "/etc/pki/tls/certs"
+    ansible_ssl_key_folder: "/etc/pki/tls/private"
+    
+- set_fact:
+    ssl_certificate_folder: "{{logstash_win_path}}"
+    ssl_key_folder: "{{logstash_win_path}}"
+    logs_path: "{{ logstash_win_path }}/logs"
+
+### The task after this one is not idempotent. This check changes that.
+### Check whether an SSL cert already exists and store the result.
+- name: check if certs exist already
+  stat:
+    path: "{{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+  register: logstash_cert
+
+### Create an SSL certificate if one doesnt already exist.
+### the only real possible variable in the command is the
+### subject name. However it is recommended to leave it as "ELK".
+### multiname subject names (e.g elk.example.com) are NOT supported
+### and will break filebeats ability to talk to logstash.
+### If you do change ELK to some other word, update the client install
+### script to reflect the new name (in the host file edit task)
+- name: generate OpenSSL certificate
+  delegate_to: localhost
+  command: "openssl req -subj '/CN=ELK/' -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout {{ansible_ssl_key_folder}}/private/logstash-forwarder.key -out {{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+  args:
+    creates: "{{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+  when: not logstash_cert.stat.exists
+
+### We push the SSL cert and key to Logstash server
+### This is because we will push it out to all clients later
+### and having it stored locally makes that push easier.
+### It also means the ansible machine is one step closer to
+### being set up for log gathering if thats your thing.
+- name: copy SSL cert to Logstash folder
+  copy:
+    src: "{{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+    dest: "{{ssl_certificate_folder}}"
+
+- name: copy SSL key to Logstash folder
+  copy:
+    src: "{{ansible_ssl_key_folder}}/logstash-forwarder.key"
+    dest: "{{ssl_key_folder}}"
+    
+#
+# Install any required plugin
+#
+- name: Update the logstash command
+  win_template:
+    src: logstash.bat
+    dest: "{{logstash_win_path}}/bin/logstash.bat"
+
+- name: Update the logstash-plugin command
+  win_template:
+    src: logstash-plugin.bat
+    dest: "{{logstash_win_path}}/bin/logstash-plugin.bat"
+    
+- name: Install the logstash-output-exec plugin (required for output to a local file)
+  win_command: 
+  args:
+    cmd: logstash-plugin install logstash-output-exec
+    chdir: "{{logstash_win_path}}/bin"
+    
+- name: Install the logstash-filter-translate plugin 
+  win_command: 
+  args:
+    cmd:logstash-plugin install logstash-filter-translate
+    chdir: "{{logstash_win_path}}/bin"
+    
+- name: Configure Logstash test filter
+  win_template:
+    src: testFilter.conf
+    dest: "{{logstash_path}}/config/testFilter.conf"
+    owner: "SYSTEM"
+    force: yes
+    
+ - name: Copy associated dictionary
+  win_template:
+    src: windows_approved_executables.yml
+    dest: "{{logstash_config_path}}/windows_approved_executables.yml"
+    owner: "SYSTEM"
+    force: yes
+ 
+ - name: Configure Logstash test filter script
+  file:
+    src: test.ps1
+    dest: "{{logstash_config_path}}/test.ps1"
+    force: yes
+...
+

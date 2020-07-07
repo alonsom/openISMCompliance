@@ -1,0 +1,30 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Remove elastic clients
+  hosts: "clients"
+  gather_facts: no
+  any_errors_fatal: no
+
+
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_elk_client_delete == 'yes'
+      setup:
+        filter: ansible_*
+        
+    - name: Include elastic_client server role
+      when: confirm_elk_client_delete == 'yes'
+      include_role:
+        name: del_elk_client
+        
+  vars_prompt:
+    - name: "confirm_elk_client_delete"
+      prompt: "Please confirm the removal of the elastic clients (yes/no)"
+      private: no
+      default: 'no' 
+...

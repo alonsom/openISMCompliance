@@ -1,0 +1,25 @@
+---
+# This playbook provision a machine suitable for a Splunk SH
+# To run for all full instances: 
+#   ansible-playbook  ../playbooks/azure_list_vm_enterprise_site.yml
+#
+# Created by Alonso Marquez (Splunk professional Services)
+#
+
+- name: List vms  in current site and associated ip address
+  hosts: 'local'
+  register: result        
+  vars:
+    # Enterprise Resource Group
+    RSG: "{{enterprise_resources_prefix}}-{{region}}-RSG"
+            
+  roles:
+    # Make sure you are working with the right Azure subscription
+    - { role: run_azure_cli, cli_cmd: "account set --subscription '{{MS_Subscription}}'"}    
+    - { role: run_azure_cli, cli_cmd: "vm list -g {{RSG}} -d -o table"}    
+
+- name: Display vms  in current site and associated ip address
+  hosts: 'local'
+  user: splunk
+  tasks:
+    - debug: msg="{{ result.stdout }}"

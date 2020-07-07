@@ -1,0 +1,37 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will test an ELK
+# server.
+# ============================================================================== 
+    
+    - name: Ensure test.log does not exist
+      file:
+        path: "{{logs_path}}/test.log"
+        state: absent
+ 
+    - name: Ensure Logstash is not running
+      shell: "Taskkill /IM java.exe /F" 
+      ignore_errors: yes
+      
+    - name: Test a trivial filter in Logstash
+      when: confirm_test == 'yes'
+      shell: "powershell.exe -ExecutionPolicy UnRestricted -File '{{logstash_config_path}}/test.ps1'"
+      register: run_logstash_test
+      async: 600  # Maximum runtime in seconds. Adjust as needed.
+      poll: 0
+
+    - debug:
+        msg: "Waiting for receiving logs from ELK clients with {{run_logstash_test}}"  
+        
+    - name: check if test.log was created
+      wait_for:
+        path: "{{logs_path}}/test.log"
+        state: present
+        msg: Timeout waiting for logs from elk clients
+        timeout: 650
+      register: test_log
+      
+    - name: Ensure the task created above is killed
+      shell: "Taskkill /IM java.exe /F" 
+...
+

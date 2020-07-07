@@ -1,0 +1,34 @@
+---
+# ==============================================================================
+# @TODO Remove java_home properly and classpath
+# https://stackoverflow.com/questions/21289762/remove-unwanted-path-name-from-path-variable-via-batch
+# setx /M PATH "%PATH:C:\Program Files (x86)\Git\bin;=%"
+# ==============================================================================
+- set_fact:
+    java_root: '{{c_drive}}/Java'
+    
+- set_fact:
+    java_path: "{{java_root}}/{{java_folder}}"
+
+    
+- name: check if sw folder exist already
+  stat:
+    path: "{{java_path}}"
+  register: sw_folder
+  
+- name: Remove sw folder
+  when: sw_folder.stat is defined and sw_folder.stat.exists 
+  file: 
+    path: "{{java_path}}"
+    state: absent
+
+#- name: Unset JAVA_HOME
+#  when: sw_folder.stat is defined and sw_folder.stat.exists 
+#  shell: "powershell.exe  -ExecutionPolicy UnRestricted SETX /m JAVA_HOME 'C:'" 
+
+#- name: Remind to set up old JAVA_HOME
+#  when: sw_folder.stat is defined and sw_folder.stat.exists
+#  pause:
+#    prompt : "Please set manually any previous value of JAVA_HOME"
+#    seconds: 5
+...

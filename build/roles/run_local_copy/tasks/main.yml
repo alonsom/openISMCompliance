@@ -1,0 +1,14 @@
+---
+# This role executes a remote copy
+- set_fact:
+    force_flag: '-rf'
+  when: force is defined and force=='yes'
+
+- set_fact:
+    force_flag: ''
+  when: force is not defined or force!='yes'
+  
+- name: "{{src}} to {{dest}}"  
+  shell: "/bin/cp {{force_flag}} {{src}} {{dest}}"
+    
+...

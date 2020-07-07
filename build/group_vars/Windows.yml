@@ -1,0 +1,19 @@
+---
+# Ansible settinge
+ansible_os_family: "Windows"
+ansible_python_interpreter: "{{ansible_playbook_python}}"
+ansible_winrm_message_encryption: auto
+ansible_winrm_server_cert_validation: ignore
+
+# ELK settings 
+java_windows_root: 'C:/Java'  
+java_zip: "{{ lookup('env','JAVA_ZIP') }}"
+java_folder: "jdk-{{ JAVA_VERSION }}"
+java_win_path: '{{java_windows_root}}/{{java_folder}}' 
+logstash_zip: "{{logstash_version}}.zip"
+logstash_folder: "{{logstash_version}}"
+logstash_bin_path: "C:/{{logstash_folder}}/bin"
+logstash_config_path: "C:/{{logstash_folder}}/config"
+logstash_logs_path: "C:/{{logstash_folder}}/logs"
+logs_path: "C:/Windows/Temp"
+...

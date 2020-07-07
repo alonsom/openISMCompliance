@@ -1,0 +1,27 @@
+---
+# This playbook delete all resources
+# To run: 
+#   ansible-playbook  del.yml
+#
+# Created by Alonso Marquez
+
+- name: Remove Azure resources
+  hosts: localhost        
+        
+  roles:
+#   - { role: run_azure_cli, cli_cmd: "network lb rule delete --resource-group {{RSG}} --name {{LB}}Rule --lb-name {{LB}}", when:  confirm_delete == 'yes'}    
+#   - { role: run_azure_cli, cli_cmd: "network lb address-pool delete --resource-group {{RSG}} --name {{LB}}BE --lb-name {{LB}}", when:  confirm_delete == 'yes'} 
+#   - { role: run_azure_cli, cli_cmd: "network lb frontend-ip delete --resource-group {{RSG}} --name {{LB}}FE --lb-name {{LB}}", when:  confirm_delete == 'yes'}  
+#   - { role: run_azure_cli, cli_cmd: "network lb delete --resource-group {{RSG}} --name {{LB}}", when:  confirm_delete == 'yes'}         
+#   - { role: run_azure_cli, cli_cmd: "network public-ip delete --resource-group {{RSG}} --name {{LB}}PublicIP", when:  confirm_delete == 'yes'}    
+   - { role: run_azure_cli_raw, cli_cmd: "network vnet subnet delete --resource-group {{RSG}} --name {{VNSubnet}} --vnet-name {{VN}}", when:  confirm_delete == 'yes'}
+   - { role: run_azure_cli_raw,
+   cli_cmd: "network vnet delete --resource-group {{RSG}} --name {{VN}}", when:  confirm_delete == 'yes'}    
+   - { role: run_azure_cli_raw, cli_cmd: "network nsg delete --resource-group {{RSG}}  --name {{NSG}}", when:  confirm_delete == 'yes'} 
+   - { role: run_azure_cli_raw, cli_cmd: "group delete  -y --name {{RSG}}", when:  confirm_delete == 'yes'}     
+   
+  vars_prompt:    
+    - name: "confirm_delete"
+      prompt: "Are you sure you want to delete all resources (yes/no)?"
+      private: no
+      default: 'no' 

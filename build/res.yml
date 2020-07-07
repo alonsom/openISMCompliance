@@ -1,0 +1,54 @@
+---
+# This playbook provision common resources
+#
+#   ansible-playbook  res.yml
+#
+# Created by Alonso Marquez 
+#
+- name: Provision Azure instance
+  hosts: localhost        
+  gather_facts: no
+   
+  roles:
+   # Create Resource Group
+   - role: run_azure_cli
+     vars:
+       cli_cmd: "group"
+       context: "--location {{region}}"
+       obj_name: "{{RSG}}"
+     when:  create_shared_resources == 'yes' 
+ 
+   # Create NSG (shared by all VMs NICs)  
+   - { role: run_azure_cli, cli_cmd: "network nsg", obj_name: "{{NSG}}", context: "", when:  create_shared_resources == 'yes'}    
+
+   # Create workgroup vnet
+   - { role: run_azure_cli, cli_cmd: "network vnet", context: "--location {{region}}", obj_name: "{{VN}}", when:  create_shared_resources == 'yes'} 
+
+   - role: run_azure_cli
+     vars:
+       cli_cmd: "network vnet subnet"
+       context: "--address-prefix 10.0.0.0/16"
+       obj_name: "{{VNSubnet}}"
+     when:  create_shared_resources == 'yes' 
+
+# Add rdp rules
+#   - { role: run_azure_cli_network_rule, port_range: '3389', direction: 'in', priority: 1000, when:  create_shared_resources == 'yes'} 
+   # Add ssh rules
+   - { role: run_azure_cli_network_rule, port_range: '22', direction: 'in', priority: 1000, when:  create_shared_resources == 'yes'} 
+   # add https rules
+   - { role: run_azure_cli_network_rule, port_range: '443', direction: 'in', priority: 1001, when:  create_shared_resources == 'yes'}    
+    # Elasticsearch input port 9200(in) 443 (output)
+   #- { role: run_azure_cli_network_rule, port_range: '9200', direction: 'in', priority: 1002, when:  create_shared_resources == 'yes'}    
+    # Logstash input port 5044 (in)  
+   - { role: run_azure_cli_network_rule, port_range: "5044", direction: 'in', priority: 1003, when:  create_shared_resources == 'yes'}     
+    # To connect to win machines using PowerShell remoting is also needed to open port 5986 (in/out)
+   #- { role: run_azure_cli_network_rule, port_range: '5986', direction: 'in', priority: 1004, when:  create_shared_resources == 'yes'}    
+   - { role: run_azure_cli_network_rule, port_range: '80', direction: 'out', priority: 1004, when:  create_shared_resources == 'yes'} 
+   - { role: run_azure_cli_network_rule, port_range: '443', direction: 'out', priority: 1005, when:  create_shared_resources == 'yes'} 
+     
+  vars_prompt:  
+    - name: "create_shared_resources"
+      prompt: "Do you want the create shared resources like Resource Security Group (yes/no)?"
+      private: no
+      default: 'no' 
+      when: is_server_cloud

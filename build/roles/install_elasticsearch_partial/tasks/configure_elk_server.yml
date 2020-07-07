@@ -1,0 +1,134 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure an ELK
+# server.
+# ==============================================================================
+
+- name: Restrict Elasticsearch access to localhost
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '.*network.host:.*'
+    line: 'network.host: localhost'
+
+### Start and Enable the Elasticsearch services.
+- name: Start Elasticsearch service
+  systemd:
+    name: elasticsearch
+    state: started
+
+- name: Enable Elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    masked: no
+
+### Kibana will also sit behind Nginx's reverse proxy.
+### This change once again restricts access to the localhost only.
+# Not anymore. Security included now with Kibana
+- name: Restrict Kibana access to localhost
+  when: False
+  lineinfile:
+    path: /opt/kibana/config/kibana.yml
+    regexp: '.*server.host:.*'
+    line: 'server.host: "localhost"'
+
+### Start and enable the Kibana services.
+- name: Start Kibana service
+  systemd:
+    name: kibana
+    state: started
+
+- name: Enable Kibana service
+  systemd:
+    name: kibana
+    enabled: yes
+    masked: no
+
+### We dont disable SELinux. So this SE Bool is set to allow
+### Http services access to the network.
+### This module is the reason why we install semanage-python on the ELK svr.
+- name: set httpd_can_network_connect bool to true
+  when: False
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+### The task after this one is not idempotent. This check changes that.
+### Check whether an SSL cert already exists and store the result.
+# - name: check if certs exist already
+#   stat:
+#     path: /etc/pki/tls/certs/logstash-forwarder.crt
+#   register: logstash_cert
+
+### Create an SSL certificate if one doesnt already exist.
+### the only real possible variable in the command is the
+### subject name. However it is recommended to leave it as "ELK".
+### multiname subject names (e.g elk.example.com) are NOT supported
+### and will break filebeats ability to talk to logstash.
+### If you do change ELK to some other word, update the client install
+### script to reflect the new name (in the host file edit task)
+- name: generate OpenSSL certificate
+  command: >
+    openssl req -subj '/CN=ELK/' -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout /etc/pki/tls/private/logstash-forwarder.key -out /etc/pki/tls/certs/logstash-forwarder.crt
+  args:
+    creates: /etc/pki/tls/certs/logstash-forwarder.crt
+  # when: not logstash_cert.stat.exists
+
+### We pull the SSL cert back to our ansible machine.
+### This is because we will push it out to all clients later
+### and having it stored locally makes that push easier.
+### It also means the ansible machine is one step closer to
+### being set up for log gathering if thats your thing.
+- name: pull SSL cert to Ansible host for future client installs
+  fetch:
+    src: /etc/pki/tls/certs/logstash-forwarder.crt
+    dest: /etc/pki/tls/certs/
+    flat: yes
+
+### The local repo server hosts a few files we need for ELK configuration.
+### This grabs the beats dashboards files and unzips them in our users home.
+- name: Download beats dashboards from local repo and unzip
+  unarchive:
+    src: http://{{ groups['linux_repository_servers'][0] }}/beats-dashboards-1.1.0.zip
+    dest: ~/
+    remote_src: yes
+    mode: 0550
+
+### This configures the ELK server with the beats dashboards.
+### the && touch ~/beats_done is just so the next task can
+### confirm that the script is finished running by checking
+### the existence of the file. (&& only runs if the script
+### didnt error out.)
+# TODO: Not sure that the touch ~/beats_done is doing anything here? If the
+# script errors out, then it will return an exit code of something other than 0.
+# The Ansible shell module will detect this non-zero exit code, and the module
+# will fail as a result... which means that the rest of the play won't run
+# anyway...
+- name: Run beats dashboard loader script
+  shell:  /root/beats-dashboards-1.1.0/load.sh && touch ~/beats_done
+
+- name: Wait for dashboard loader script to complete
+  wait_for:
+    path: ~/beats_done
+
+### Grab the json index template ready for upload to the ELK server.
+- name: Download filebeat index template from local repo
+  get_url:
+    url: http://{{ groups['linux_repository_servers'][0] }}/filebeat-index-template.json
+    dest: ~/filebeat-index-template.json
+    mode: 0440
+
+### This could be done better
+### Should probably be using uri: or somethig like that.
+### But this is a super static command and this will work reliably
+### so it's not a big deal.
+- name: upload filebeat index template to ELK server
+  # shell: curl -XPUT 'http://localhost:9200/_template/filebeat?pretty' -d@filebeat-index-template.json
+  uri:
+    url: http://localhost:9200/_template/filebeat?pretty
+    method: PUT
+    remote_src: filebeat-index-template.json
+
+### At this point you can browse to the ELK server and log into Kibana.
+### Logs will start coming in once the Client_install script is run against some machines.

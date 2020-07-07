@@ -1,0 +1,47 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure a filebeat
+# client on a Linux server.
+# ==============================================================================
+
+#
+#  The ELK_Install script pulls the log SSL cert to the ansible machine.
+#  This pushes the cert out to our clients.
+#
+- name: Copy SSL Certificate to Client
+  when: using_certificates is defined
+  copy:
+    src: /etc/pki/tls/certs/logstash-forwarder.crt
+    dest: /etc/pki/tls/certs/logstash-forwarder.crt
+  become: yes
+  
+#
+# Defining Logstash DNS entry (ELK) in hosts (otherwise the certificate is rejected).
+#
+- name: add elk server to local hostfile
+  when: using_certificates is defined
+  lineinfile:
+    path: /etc/hosts
+    line: '{{server_host}} ELK'
+  become: yes
+  
+- name: Transfer winlogbeat.yml template
+  copy:
+    src: filebeat.linux.yml
+    dest: "/usr/local/winlogbeat.yml"
+    force: yes
+  become: yes    
+ 
+- name: Start Filebeat service
+  systemd:
+    name: filebeat
+    state: restarted
+  become: yes
+  
+- name: Enable Filebeat service
+  systemd:
+    name: filebeat
+    enabled: yes
+    masked: no
+  become: yes
+...

@@ -1,0 +1,17 @@
+---
+# This playbook contains common tasks in this role
+- name: echo instantiated cmd
+  debug: 
+    msg: "{{shell_cmd}}"
+
+- name: run cmd in shell
+  shell: "{{shell_cmd}}"
+  register: shell_result
+  
+- set_fact:
+    "{{register}}": "{{local_shell_result}}"
+  when: register is defined and local_shell_result is defined
+
+- set_fact:
+    "{{register}}": "{{shell_result}}"
+  when: register is defined and shell_result is defined  

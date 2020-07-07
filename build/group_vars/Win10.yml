@@ -1,0 +1,6 @@
+---
+# Ansible settinge
+ansible_connection: winrm 
+ansible_port: 5986
+c_drive: "C:"
+...

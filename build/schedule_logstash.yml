@@ -1,0 +1,38 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Schedule logstash server
+  hosts: "{{vm_group}}"
+  gather_facts: no
+  any_errors_fatal: no
+
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_create == 'yes'
+      setup:
+        filter: ansible_*
+
+    - set_fact:
+        ansible_user: "{{ local_admin_user }}"
+        ansible_password: "{{ local_admin_password }}"
+        
+    - name: Include logstash server role
+      when: confirm_create == 'yes'
+      include_role:
+        name: schedule_logstash
+
+  vars_prompt:
+    - name: "confirm_create"
+      prompt: "Please confirm the scheduling of logstash (yes/no)"
+      private: no
+      default: 'no' 
+    - name: "local_admin_user"
+      prompt: "Enter admin user for local machine"
+      private: no
+    - name: "local_admin_password"
+      prompt: "Enter password fot this admin user"
+      private: yes
+...

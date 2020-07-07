@@ -1,0 +1,14 @@
+---
+# ==============================================================================
+# This is the main variable default definition file for this role.
+# It defines all the default variable values that will be provided to plays that
+# use this role and it references other default variable definition files as
+# required.
+#
+# IMPORTANT NOTE: These default role variable definitions have LOWER precedence
+# than all variables defined in playbooks and inventories. If a role variable
+# definition should have HIGHER precedence than this then it should be placed
+# into the role vars (instead of the role defaults).
+# ==============================================================================
+log_file_rotate_threshold_mb: 10
+...

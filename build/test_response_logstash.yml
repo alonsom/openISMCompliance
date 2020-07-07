@@ -1,0 +1,49 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tests for ELK
+# servers.
+# ==============================================================================
+
+- name: Execute both Logstash and the Beat client in the same server
+  hosts: "{{vm_group}}"
+  gather_facts: no
+  connection: local
+  any_errors_fatal: no
+    
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_test == 'yes'
+      setup:
+        filter: ansible_*
+
+    - name: Include logstash test response role
+      when: confirm_test == 'yes'
+      include_role:
+        name: test_response_logstash
+ 
+  vars_prompt:
+    - name: "confirm_test"
+      prompt: "Do you want the start the testing of automatic notification using Logstash? (yes/no)"
+      private: no
+      default: 'no' 
+      
+    - name: "SmtpUser"
+      prompt: "Enter the smtp user for this test"
+      private: no
+      default: 'alonsom' 
+
+    - name: "SmtpPassword"
+      prompt: "Enter the smtp password for this test"
+      private: yes
+
+    - name: "SmtpServer"
+      prompt: "Enter the smtp server for this test"
+      private: no
+      default: 'mail.iinet.net.au' 
+      
+    - name: "To"
+      prompt: "Enter email to be notified by this test"
+      private: no
+      default: 'alonsom@iinet.net.au' 
+...

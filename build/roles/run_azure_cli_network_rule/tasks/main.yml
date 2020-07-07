@@ -1,0 +1,9 @@
+---
+# This role executes a azure CLI network 
+- name: "cmd /C az network nsg rule create --resource-group {{resources_prefix}}RSG --nsg-name {{resources_prefix}}NSG --name {{resources_prefix}}NSG{{port}}{{direction}} --protocol tcp --direction {{direction}}bound --priority {{priority}} --source-address-prefix '*' \
+       --source-port-range '*' --destination-address-prefix '*' --destination-port-range {{port}} --access allow"
+  become: False
+  tags:
+   - install
+  shell: "cmd /C az network nsg rule create --resource-group {{RSG}} --nsg-name {{NSG}} --name {{NSG}}{{port_range}}{{direction}} --protocol {{protocol}} --direction {{direction}}bound --priority {{priority}} --source-address-prefix '*' \
+       --source-port-range '*' --destination-address-prefix '*' --destination-port-range {{port_range}} --access allow"

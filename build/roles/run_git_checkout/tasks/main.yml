@@ -1,0 +1,5 @@
+---
+# This playbook contains common tasks in this role
+# Pull recent changes
+- name: Checkout most recent changes
+  command: "git pull ssh://{{ssh_user_name}}@{{cms_enterprise}}/root/git/SplunkTemplates"

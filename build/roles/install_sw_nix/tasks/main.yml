@@ -1,0 +1,18 @@
+---
+# This task install SW in a nix machine
+
+# Please see http://www.leonardoborda.com/blog/how-to-configure-sysstatsar-on-ubuntudebian/
+- name: Make sure we can use a sw module in Debian(required by NIX App)
+  apt:
+    name: "{{pkg}}" 
+    state: present
+  become: yes
+  when: ansible_distribution == 'Ubuntu'
+
+# Please see http://www.techoism.com/how-to-install-and-configure-sar-on-centosrhel/
+- name: Make sure we can use a sw module in RHEL (required by NIX App)
+  yum: 
+    name: "{{pkg}}"
+    state: present
+  become: yes
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'

@@ -1,0 +1,21 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install Java
+# ==============================================================================    
+- set_fact:
+    java_path: "{{c_drive}}/Java/{{java_folder}}"
+
+- debug:
+    msg: "java_path={{java_path}}"
+    
+- name: check if sw folder exists
+  stat:
+    path: "{{java_path}}"
+  register: java_exe
+    
+- name: Unzip Java zip
+  when: java_exe.stat is defined and not java_exe.stat.exists 
+  shell: "PowerShell.exe -ExecutionPolicy UnRestricted Expand-Archive -Path C:/cygwin64/tmp/{{java_zip}} -DestinationPath {{java_windows_root}}"
+
+...
+

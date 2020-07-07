@@ -1,0 +1,10 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install an ELK server.
+# ==============================================================================
+
+- name: Install Java
+  yum:
+    name: "java-{{ JAVA_VERSION }}-openjdk-devel"
+    state: present
+

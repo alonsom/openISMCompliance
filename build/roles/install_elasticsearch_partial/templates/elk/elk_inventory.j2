@@ -1,0 +1,4 @@
+[elk]
+{{ groups['elk_servers'][0] }}
+[elk_client]
+{{ groups['elk_linux_clients'] | default([]) }}

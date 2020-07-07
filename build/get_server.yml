@@ -1,0 +1,27 @@
+---
+# ==============================================================================
+# This Ansible playbook retrieve details of the local server
+# ==============================================================================
+
+- name: Retrieve Dchp IP for local servers (if failed retrieve ? IP)
+  hosts: localhost
+  gather_facts: yes
+  connection: local
+    
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find local ip
+      shell: "powershell '(Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp).IPAddress'"
+      register: ip_line
+ 
+    - name: Add local server to inventory (assume is a Windows server)
+      add_host:
+        hostname: "server"
+        ansible_host: "{{ip_line.stdout}}"
+        ansible_hostname: "server"
+        groups: 
+          - "Windows" 
+          - "CYGWIN"
+          - "clients"
+          - "local_logstash"
+...

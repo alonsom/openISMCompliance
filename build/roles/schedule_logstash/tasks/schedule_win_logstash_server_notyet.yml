@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure an ELK
+# server.
+# ==============================================================================
+
+#- set_fact:
+#    ansible_ssl_certificate_folder: "/etc/pki/tls/certs"
+#    ansible_ssl_key_folder: "/etc/pki/tls/private"
+    
+- name: Configure Logstash filter
+  win_template:
+    src: filter.conf
+    dest: "{{logstash_config_path}}/filter.conf"
+    owner: "SYSTEM"
+    force: yes
+
+- name: Copy associated dictionary
+  win_template:
+    src: windows_approved_executables.yml
+    dest: "{{logstash_config_path}}/windows_approved_executables.yml"
+    owner: "SYSTEM"
+    force: yes
+    
+- name: Copy associated bat
+  template:
+    src: filter.bat
+    dest: "{{logstash_cygwin_config_path}}/filter.bat"
+#    owner: "SYSTEM"
+    force: yes
+
+### Start and enable the logstash service
+- name: Check the scheduled task
+  win_shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Logstash' 
+  register: getLogstashScheduledTask
+  ignore_errors: yes
+    
+- name: Copy Logstash service script
+  when: "getLogstashScheduledTask is defined and 'Logstash' not in getLogstashScheduledTask.stdout"
+  win_template:
+    src: logstashService.ps1
+    dest: "C:/Windows/Temp"
+    force: yes
+    
+- name: Create scheduled task to run a process using Powershell
+  when: "getLogstashScheduledTask is defined and 'Logstash' not in getLogstashScheduledTask.stdout"
+  win_shell: 'powershell.exe -ExecutionPolicy UnRestricted C:/Windows/Temp/logstashService.ps1'
+  
+- name: Restart existing scheduled Task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Start-ScheduledTask -TaskName Logstash'
+...
+

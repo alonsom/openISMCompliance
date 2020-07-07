@@ -1,0 +1,6 @@
+---
+# This playbook run a search in the local host
+- name: run cli cmd
+  tags:
+   - test
+  shell: "/opt/{{splunk_folder}}/bin/splunk search '{{query}}' -auth admin:{{splunk_admin_password}}  -uri 'https://localhost:8089'"

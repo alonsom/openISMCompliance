@@ -1,0 +1,6 @@
+--- 
+- name: Unzip {{src}} to {{dest}} with {{ansible_connection}}
+  include_tasks: roles/run_win_cli/tasks/main.yml
+  vars:
+    cli_cmd: "PowerShell.exe Expand-Archive -Path {{src}} -DestinationPath {{dest}}"
+...

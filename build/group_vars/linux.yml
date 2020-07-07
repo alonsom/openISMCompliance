@@ -1,0 +1,8 @@
+---
+
+logs_path: "/var/log/logstash/"
+logstash_logs_path: "/var/log/logstash/"
+logstash_bin_path: "/usr/share/logstash/bin"
+logstash_config_path: "/etc/logstash"
+logstash_usr_config_path: "/usr/share/logstash/config"
+...

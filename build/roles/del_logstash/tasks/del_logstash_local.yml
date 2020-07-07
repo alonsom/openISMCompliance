@@ -1,0 +1,36 @@
+---
+# ==============================================================================
+# ..
+# ==============================================================================
+- set_fact:
+    logstash_path: "{{c_drive}}/{{logstash_version}}"
+    
+- name: check if sw folder exist already
+  stat:
+    path: "{{logstash_path}}"
+  register: sw_folder
+    
+- name: Check the scheduled task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Logstash' 
+  register: getScheduledTask
+  ignore_errors: yes  
+
+- name: Remove scheduled task 
+  when: "getScheduledTask is defined and 'Logstash' in getScheduledTask.stdout"
+  shell: "echo 'Y' | powershell.exe -ExecutionPolicy UnRestricted Unregister-ScheduledTask -TaskName Logstash"
+
+- name: Check if the Logstash process is still running
+  shell: cmd /C tasklist /FI "IMAGENAME eq java.exe"
+  register: getLogstashProcess
+  ignore_errors: yes 
+  
+- name: Remove Logstash process 
+  when: "getLogstashProcess is defined and 'java.exe' in getLogstashProcess.stdout"
+  shell: cmd /C 'taskkill /F /IM java.exe'
+  
+- name: Remove sw folder
+  when: sw_folder.stat is defined and sw_folder.stat.exists 
+  file: 
+    path: "{{logstash_path}}"
+    state: absent
+...

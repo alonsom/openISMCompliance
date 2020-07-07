@@ -1,0 +1,28 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will delete winlogbeat
+# ==============================================================================
+- set_fact:
+    sw_path: "C:/{{winlogbeat_version}}"
+
+- name: check if sw folder exist already
+  stat:
+    path: "{{sw_path}}"
+  register: sw_folder
+  
+# There is problems with builting uninstall-service-winlogbeat.ps1'"
+- name: Check the scheduled task
+  win_shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Winlog' 
+  register: getELCScheduledTask
+  ignore_errors: yes 
+  
+- name: Remove scheduled task 
+  when: "getELCScheduledTask is defined and 'Winlog' in getELCScheduledTask.stdout"
+  win_shell: "echo 'Y' | powershell.exe -ExecutionPolicy UnRestricted Unregister-ScheduledTask -TaskName Winlog"
+  
+- name: Remove sw folder of winlogbeat
+  when: sw_folder.stat is defined and sw_folder.stat.exists 
+  win_file: 
+    path: "{{sw_path}}"
+    state: absent
+...

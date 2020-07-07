@@ -1,0 +1,24 @@
+---
+# ==============================================================================
+# This is the main task definition file for this role.
+# ==============================================================================
+- name: Fail if OS is not supported
+  fail:
+    msg: "OS family {{ansible_os_family}} not supported for the ELK client role"
+  when: ansible_os_family != 'RedHat' and ansible_os_family != 'Windows' and 'CYGWIN' not in ansible_os_family
+  
+- name: schedule Logstash server in local Windows server
+  when: "'CYGWIN' in ansible_os_family" 
+  include_tasks: schedule_local_logstash_server.yml
+  
+- name: Become block
+  block: 
+   - name: schedule LogStash server in Centos/RHEL
+     when: ansible_os_family == 'RedHat'
+     import_tasks: schedule_rhel_logstash_server.yml
+
+   - name: schedule Logstash server in remote Windows server
+     when: ansible_os_family == 'Windows'
+     include_tasks: schedule_win_logstash_server.yml
+  become: yes
+...

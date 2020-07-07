@@ -1,0 +1,16 @@
+---
+# ==============================================================================
+# ..
+# ==============================================================================
+- name: Copy filebeat_rpm to Client
+  copy:
+    src: "/tmp/{{filebeat_rpm}}"
+    dest: "/tmp/{{filebeat_rpm}}"
+  become: yes
+    
+- name: install filebeats
+  yum:
+    name: "/tmp/{{filebeat_rpm}}"
+    state: present 
+  become: yes
+...

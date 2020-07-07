@@ -1,0 +1,34 @@
+---
+# ==============================================================================
+# This Ansible playbook performs generic tasks for ELK
+# servers.
+# ==============================================================================
+
+- name: Install and configure elastic clients
+  hosts: "clients"
+  gather_facts: no
+  any_errors_fatal: no
+    
+  # Define static variables required to execute the play
+  tasks:
+    - name: Find the OS of the machine
+      when: confirm_elk_client_create == 'yes'
+      setup:
+        filter: ansible_*
+
+    - name: Set the local server as the server_host
+      when: confirm_elk_client_create == 'yes' and hostvars.server is defined
+      set_fact:
+        server_host: "{{hostvars.server.ansible_host}}"
+        
+    - name: Include elastic_client server role
+      include_role:
+        name: install_elk_client
+      when: confirm_elk_client_create == 'yes' and hostvars.server is defined
+        
+  vars_prompt:
+    - name: "confirm_elk_client_create"
+      prompt: "Please confirm the setup of the ELK clients (yes/no)"
+      private: no
+      default: 'no' 
+...

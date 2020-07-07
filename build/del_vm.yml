@@ -1,0 +1,25 @@
+---
+# This playbook destroy a VM machine
+# To run for all full instances: 
+#   ansible-playbook del_vm.yml 
+#
+# Created by Alonso Marquez
+# 
+# @TODO: Use the group inventory to cycle over all machines instead of prefixing to vm_name
+#
+- name: Delete a Azure vm
+  hosts: "localhost"
+  gather_facts: no  
+        
+  roles:
+    - { role: run_azure_cli_raw, cli_cmd: "vm delete --y --resource-group {{RSG}} --name {{vm_name}} ", when: confirm_delete == 'yes' }
+    - { role: run_azure_cli_raw, cli_cmd: "network nic delete --resource-group {{RSG}} --name {{vm_name}}Nic ", when: confirm_delete == 'yes' }    
+    - { role: run_azure_cli_raw, cli_cmd: "network public-ip delete --resource-group {{RSG}} --name {{vm_name}}PublicIP ", when: confirm_delete == 'yes' }    
+    - { role: run_azure_cli_raw, cli_cmd: "disk delete --resource-group {{RSG}} --name {{vm_name}}OSDisk --yes", when: confirm_delete == 'yes' }   
+#    - { role: run_win_cli, cli_cmd: "del ../.ssh/id*", when: confirm_delete == 'yes' }
+    
+  vars_prompt:
+    - name: "confirm_delete"
+      prompt: "Please confirm the deletion of VM {{vm_name}}"
+      private: no
+      default: 'no' 

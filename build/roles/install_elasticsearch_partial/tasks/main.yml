@@ -1,0 +1,24 @@
+---
+# ==============================================================================
+# This is the main task definition file for this role.
+# It defines all the tasks that will be invoked for plays that use this role,
+# and it references other task definition files as required.
+# ==============================================================================
+# Fact gathering is not performed by default for this role (to prevent facts
+# from being gathered for inventory hosts that are marked as inactive), but fact
+# gathering IS required for active hosts in this role
+- name: Gather facts
+  setup:
+
+- name: Install ELK server
+  import_tasks: install_elk_server.yml
+  become: yes
+
+#- name: Configure ELK inventory
+#  import_tasks: configure_elk_inventory.yml
+#  become: yes
+
+- name: Configure ELK server
+  import_tasks: configure_elk_server.yml
+  become: yes
+...

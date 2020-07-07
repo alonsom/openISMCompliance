@@ -1,0 +1,13 @@
+---
+# Ansible settings
+ansible_connection: local 
+c_drive: "/cygdrive/c" 
+
+# ELK settings 
+logs_path: "{{c_drive}}/{{logstash_folder}}/logs" 
+logstash_cygwin_path: "{{c_drive}}/{{logstash_folder}}"
+logstash_cygwin_config_path: "{{logstash_cygwin_path}}/config"
+logstash_cygwin_bin_path: "{{logstash_cygwin_path}}/bin"
+winlogbeat_cygwin_path: "{{c_drive}}/{{winlogbeat_folder}}"     
+
+...

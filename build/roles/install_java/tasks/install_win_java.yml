@@ -1,0 +1,20 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install Java
+# ==============================================================================
+- name: check if java.exe exists
+  stat:
+    path: "{{java_windows_root}}/bin/java.exe"
+  register: java_exe
+    
+- name: Copy Java zip 
+  when: java_exe.stat is defined and not java_exe.stat.exists 
+  win_copy:
+    src: "/tmp/{{java_zip}}"
+    dest: "C:/Windows/Temp/{{java_zip}}"
+  
+- name: Unzip Java zip
+  when: java_exe.stat is defined and not java_exe.stat.exists 
+  win_shell: "PowerShell.exe -ExecutionPolicy UnRestricted Expand-Archive -Path C:/Windows/Temp/{{java_zip}} -DestinationPath {{java_windows_root}}"
+...
+

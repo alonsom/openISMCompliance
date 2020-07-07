@@ -1,0 +1,71 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure a winlogbeat
+# client on a Windows server.
+# ==============================================================================
+
+- name: Transfer winlogbeat.yml template
+  template:
+    src: winlogbeat.yml
+    dest: "{{winlogbeat_cygwin_path}}/winlogbeat.yml"
+    owner: "SYSTEM"
+    force: yes
+
+#
+#  The Logstash_Install script pulls the log SSL cert to the ansible machine.
+#  This pushes the cert out to our clients.
+#
+- name: Copy SSL Certificate to Client
+  when: using_certificates is defined
+  copy:
+    src: "{{ansible_ssl_certificate_folder}}/logstash-forwarder.crt"
+    dest: "{{winlogbeat_cygwin_path}}/logstash-forwarder.crt" 
+    owner: "SYSTEM"
+
+#
+# Defining Logstash DNS entry (ELK) in hosts (otherwise the certificate is rejected).
+#
+- name: add elk server to local hostfile
+  when: using_certificates is defined
+  lineinfile:
+    path: /etc/hosts
+    line: '{{server_host}} ELK'
+  become: yes
+ 
+    
+# 
+# Start+Enable the winlog service
+#
+- name: Check the scheduled task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Winlog' 
+  register: getELCScheduledTask
+  ignore_errors: yes
+
+- name: Stop existing Task
+  when: "getELCScheduledTask is defined and 'Winlog' in getELCScheduledTask.stdout"
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Stop-ScheduledTask -TaskName Winlog'
+
+- name: Waiting couple of minutes to give time to process the previous command
+  pause:
+    minutes: 2
+    
+- name: Remove scheduled task 
+  when: "getELCScheduledTask is defined and 'Winlog' in getELCScheduledTask.stdout"
+  shell: "echo 'Y' | powershell.exe -ExecutionPolicy UnRestricted Unregister-ScheduledTask -TaskName Winlog"
+    
+- name: Copy Winlog service script
+  template:
+    src: winlogService.ps1
+    dest: "{{c_drive}}/Windows/Temp/winlogService.ps1"
+    force: yes
+   
+- name: Create scheduled task to run a process using Powershell
+  shell: "powershell.exe -ExecutionPolicy UnRestricted C:/Windows/Temp/winlogService.ps1"
+  
+- name: Restart existing scheduled Task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Start-ScheduledTask -TaskName Winlog' 
+  
+- name: Waiting couple of minutes to give time to process the previous command
+  pause:
+    minutes: 2
+...

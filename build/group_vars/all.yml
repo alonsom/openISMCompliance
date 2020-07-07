@@ -1,0 +1,50 @@
+---
+### global settings for Azure ### 
+# Enterprise instance name
+# This instance name is used as a prefix for all enterprise common resources (should be only one)
+resources_prefix: demo
+region: 'australiacentral'
+vm_name: "logstash_remote"
+vm_RHEL: RedHat:RHEL:7.7:latest
+vm_Win2012: Win2012Datacenter
+vm_size:
+    demo: Standard_B1s
+    small: Standard_DS5_v2
+    medium: Standard_DS15_v2
+initial_admin_user_name: logstash
+initial_admin_user_password: PasswordLargo1
+
+### global settings for Elastic ### 
+ELASTIC_VERSION: "{{ lookup('env','ELASTIC_VERSION') }}"
+
+### global settings for Java/Logstash ### 
+JAVA_VERSION: "{{ lookup('env','JAVA_VERSION') }}"
+logstash_version: "logstash-{{ELASTIC_VERSION}}"
+
+#
+# Do not change from here
+#
+# Azure machine size
+machine_size: "{{vm_size.demo}}"
+# Resource Group
+RSG: "{{resources_prefix}}RSG"
+# Network Security Group
+NSG: "{{resources_prefix}}NSG"
+# Virtual Net
+VN: "{{resources_prefix}}VN"
+# Virtual Sub Net
+VNSubnet: "{{resources_prefix}}FrontEnd"
+#    LB: "{{enterprise_resources_prefix}}LB"  
+protocol: 'tcp'
+
+# ELK/Cygwin/Ansible settings
+ansible_ssl_certificate_folder: "/etc/pki/tls/certs"
+ansible_ssl_key_folder: "/etc/pki/tls/private"
+
+### global settings for the Elastic beats ### 
+winlogbeat_folder: "winlogbeat-{{ELASTIC_VERSION}}-windows-x86_64"
+winlogbeat_win_path: "C:/{{winlogbeat_folder}}"
+winlogbeat_zip: "{{winlogbeat_folder}}.zip"
+filebeat_version: "auditbeat-{{ELASTIC_VERSION}}-x86_64"
+filebeat_rpm: "{{filebeat_version}}.rpm"
+...

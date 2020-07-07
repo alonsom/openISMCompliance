@@ -1,0 +1,13 @@
+---
+# This playbook contains common tasks in this role
+- name: echo instantiated cmd
+  tags: 
+    - install
+  debug: 
+    msg: "az {{cli_cmd}}"
+
+- name: run cmd
+  become: False
+  tags:
+   - install
+  shell: "cmd /C az {{cli_cmd}}"

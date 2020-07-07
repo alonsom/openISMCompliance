@@ -1,0 +1,20 @@
+filebeat:
+  prospectors:
+    - input_type: log
+      paths:
+        - /var/log/secure
+        - /var/log/messages
+      document_type: syslog
+  registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["{{server_host}}:5044"]
+    protocol: "https"
+    bulk_max_size: 1024
+    tls:
+      certificate_authorities: ["/etc/pki/tls/certs/logstash-forwarder.crt"]
+
+logging:
+  files:
+    rotateeverybytes: {{ log_file_rotate_threshold_mb * 1024 * 1024 }}

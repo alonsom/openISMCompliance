@@ -1,0 +1,26 @@
+---
+# ==============================================================================
+# This is the main task definition file for this role.
+# ==============================================================================
+- name: Fail if OS is not supported
+  fail:
+    msg: "OS family {{ansible_os_family}} not supported for the ELK client role"
+  when: ansible_os_family != 'RedHat' and ansible_os_family != 'Windows' and 'CYGWIN' not in ansible_os_family
+
+- name: Install Java in local Windows server
+  when: "'CYGWIN' in ansible_os_family"
+  include_tasks: install_local_java.yml
+
+- name: Become block
+  block:  
+    - name: Install Java in Centos/RHEL
+      when: ansible_os_family == 'RedHat'
+      import_tasks: install_rhel_java.yml
+
+    - name: Install Java in Windows server
+      when: ansible_os_family == 'Windows'
+      include_tasks: install_win_java.yml
+  become: yes
+ 
+ 
+...

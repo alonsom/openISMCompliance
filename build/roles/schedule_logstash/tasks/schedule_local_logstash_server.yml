@@ -1,0 +1,56 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will configure an ELK
+# server.
+# ==============================================================================       
+- name: Configure Logstash filter
+  template:
+    src: filter.conf
+    dest: "{{logstash_cygwin_config_path}}/filter.conf"
+    force: yes
+    
+- name: Copy associated pipeline
+  copy:
+    src: pipelines.yml
+    dest: "{{logstash_cygwin_config_path}}/pipelines.yml"
+    force: yes
+
+- name: Copy associated bat
+  template:
+    src: filter.bat
+    dest: "{{logstash_cygwin_config_path}}/filter.bat"
+#    owner: "SYSTEM"
+    force: yes
+    
+### Start and enable the logstash service
+- name: Check the scheduled task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Get-ScheduledTask -TaskName Logstash' 
+  register: getLogstashScheduledTask
+  ignore_errors: yes
+
+- name: Stop existing Task
+  when: "getLogstashScheduledTask is defined and 'Logstash' in getLogstashScheduledTask.stdout"
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Stop-ScheduledTask -TaskName Logstash'
+
+- name: Waiting couple of minutes to give time to process the previous command
+  pause:
+    minutes: 2
+    
+- name: Remove scheduled task 
+  when: "getLogstashScheduledTask is defined and 'Logstash' in getLogstashScheduledTask.stdout"
+  shell: "echo 'Y' | powershell.exe -ExecutionPolicy UnRestricted Unregister-ScheduledTask -TaskName Logstash"
+
+    
+- name: Copy Logstash service script
+  template:
+    src: logstashService.ps1
+    dest: "{{c_drive}}/Windows/Temp"
+    force: yes
+    
+- name: Create scheduled task to run a process using Powershell
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted C:/Windows/Temp/logstashService.ps1'
+  
+- name: Restart existing scheduled Task
+  shell: 'powershell.exe -ExecutionPolicy UnRestricted Start-ScheduledTask -TaskName Logstash'
+...
+

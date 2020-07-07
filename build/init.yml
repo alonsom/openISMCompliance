@@ -1,0 +1,36 @@
+---
+# This playbook provision a machine suitable for the enterprise CMS
+# To run for all full instances: 
+#   ansible-playbook init.yml
+#
+# Created by Alonso Marquez
+#
+
+- hosts: localhost
+  gather_facts: no
+
+  tasks:        
+   # Make sure you are working with the right Azure 
+   - name: Login to azure
+     shell: "cmd /C 'az login 2> az_login.out'"
+     ignore_errors: yes
+ 
+   - name: Get the first valid subscription
+     shell: "cmd /C az account list --output table | /bin/grep.exe Enabled |  /bin/cut.exe -d ' ' -f 6"
+     register: MS_Subscription_execution
+       
+   - debug:
+       msg: "MS_Subscription_execution={{MS_Subscription_execution}}"  
+       
+   - set_fact:
+       MS_Subscription: "{{MS_Subscription_execution.stdout}}"
+       
+   - debug:
+       msg: "MS_Subscription={{MS_Subscription}}"  
+     
+   - include_role:
+       name: run_win_cli
+     vars: 
+       cli_cmd: "az account set --subscription '{{MS_Subscription}}'"
+...
+    

@@ -1,0 +1,20 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will delete Java
+# @TODO Remove java_home properly and classpath
+# ==============================================================================
+- set_fact:
+    java_path: "C:/{{java_folder}}"
+
+- name: check if sw folder exist already
+  stat:
+    path: "{{java_path}}"
+  register: sw_folder
+  
+- name: Remove sw folder
+  when: sw_folder.stat is defined and sw_folder.stat.exists 
+  win_file: 
+    path: "{{java_path}}"
+    state: absent
+
+...

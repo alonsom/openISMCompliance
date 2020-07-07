@@ -1,0 +1,24 @@
+---
+# This role executes a windows CLI cmd
+- name: "cmd /C {{cli_cmd}}"
+  when: ansible_connection=='local'
+  shell: "cmd /C '{{cli_cmd}}'"
+  register: local_cli_result
+    
+- fail:
+    msg: "local_cli_result={{local_cli_result}}"
+  when: local_cli_result.stderr_lines is defined and (local_cli_result.stderr_lines | length>0)
+  
+- name: "{{cli_cmd}}"
+  when: ansible_connection!='local'
+  win_shell: "{{cli_cmd}}"
+  register: cli_result
+  
+- set_fact:
+    "{{register}}": "{{local_cli_result}}"
+  when: register is defined and local_cli_result is defined
+
+- set_fact:
+    "{{register}}": "{{cli_result}}"
+  when: register is defined and cli_result is defined  
+...

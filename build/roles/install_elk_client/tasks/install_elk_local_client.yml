@@ -1,0 +1,14 @@
+---
+# ==============================================================================
+# This task definition file describes the tasks that will install winlogbeat
+# ==============================================================================
+- name: check if winlogbeat.yml exists
+  stat:
+    path: "{{winlogbeat_cygwin_path}}/winlogbeat.yml"
+  register: winlogbeat_yml
+  
+- name: Unzip winlogbeat
+  when: winlogbeat_yml.stat is defined and not winlogbeat_yml.stat.exists 
+  shell: "PowerShell.exe -ExecutionPolicy UnRestricted Expand-Archive -Path C:/cygwin64/tmp/{{winlogbeat_zip}} -DestinationPath C:\\"
+  register: expand
+...
