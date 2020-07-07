@@ -31,7 +31,6 @@
     - name: "SmtpUser"
       prompt: "Enter the smtp user for this test"
       private: no
-      default: 'alonsom' 
 
     - name: "SmtpPassword"
       prompt: "Enter the smtp password for this test"
@@ -40,10 +39,8 @@
     - name: "SmtpServer"
       prompt: "Enter the smtp server for this test"
       private: no
-      default: 'mail.iinet.net.au' 
       
     - name: "To"
       prompt: "Enter email to be notified by this test"
       private: no
-      default: 'alonsom@iinet.net.au' 
 ...

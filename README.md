@@ -34,19 +34,6 @@ critical security logs.
   * Delete whole system or specific components
 * Declarative: Idempotent scripts based on desired state could be repeatedly run and they will only apply changes from previous runs.
 * The scripts have been tested in Windows 10 and RHEL environments using Java 11 and ELK 7.7
-
-## Pending before release
-* Project
-  * Remove other hosts in hosts.yml
-  * Remove personal details in test_response
-  * Include remediation example using Ansible
-  * Improve documentation and remove unused roles
-  * Test and commit changes
-* Remove git history (.git), download latest encrypted version to website and update download link (article & web page)
-* Finish detailed instructions including screen shoots (here and article?)
-* Explain how to update whitelisting properties file
-* Make the GitHub project public
-* Send article to small list friend/contacts and ask for feedback -> send to large list
 		
 ## Steps to make the solution Production Ready
   * Create and enable certificates between ELK clients and Logstash
@@ -55,15 +42,16 @@ critical security logs.
   * Limit the allowed connections to remote Logstash instance to the IP of the machine where Ansible has been installed.
   * Encrypt any beat client users/passwords using ansible-vault
 
-## Pending/improvements
-* Improve code documentation, include SOP and add copyrigth line to every file
-* Add feedback from beta-testers
-* Include examples for the other Essential 8 controls
-* Include other examples of automatic response (e.g. blocking the execution using GPO)
+## Pending tasks/improvements
+* Improve code documentation, include SOP for running and updating critical properties
+* Add a copyrigth line to every file
+* Add feedback received from beta-testers
+* Include examples for other Essential 8 controls
+* Include examples of automatic response (e.g. blocking the execution using GPO)
 * Whitelisting for Linux machines
 * Support other linux families (e.g. Ubuntu)
 * Replace some powershell scripts for the equivalent ansible module (e.g. win_scheduled_task)
-* Understand bug when using Winlogbeat service and replace schedule task by service if solution found 
+* Diagnostic bug found when using the Winlogbeat service and replace schedule task by service if solution found 
 * Manage better the failures of the setup.ps1 script
 * log4j2 configuration missing at path /usr/share/logstash/config/log4j2.properties (only NIX version) 
 * Add another maintream Cloud provider (e.g. AWS)
