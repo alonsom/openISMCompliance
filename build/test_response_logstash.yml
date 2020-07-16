@@ -7,7 +7,6 @@
 - name: Execute both Logstash and the Beat client in the same server
   hosts: "{{vm_group}}"
   gather_facts: no
-  connection: local
   any_errors_fatal: no
     
   # Define static variables required to execute the play

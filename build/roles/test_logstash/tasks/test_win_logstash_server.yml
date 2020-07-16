@@ -5,11 +5,11 @@
 # ==============================================================================
     - name: Ensure test.log does not exist
       win_file:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/test.log"
         state: absent
 
     - name: Ensure Logstash is not running
-      shell: "Taskkill /IM java.exe /F" 
+      win_shell: "Taskkill /IM java.exe /F" 
       ignore_errors: yes
       
     - name: Test a trivial filter in Logstash
@@ -18,7 +18,7 @@
 #        cmd: 'powershell.exe ../bin/logstash.bat -f testFilter.conf'
 #        chdir: "{{logstash_config_path}} "
       register: run_logstash_test
-      async: 600  # Maximum runtime in seconds. Adjust as needed.
+      async: 350  # Maximum runtime in seconds. Adjust as needed.
       poll: 0
 
     - debug:
@@ -26,13 +26,18 @@
         
     - name: check if test.log was created
       win_wait_for:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/test.log"
         state: present
         msg: Timeout waiting for logs from elk clients
-        timeout: 650
+        timeout: 355
       register: test_log
-
+      ignore_errors: yes
+      
     - name: Ensure the task created above is killed
       win_shell: "Taskkill /IM java.exe /F"
+      
+    - fail:
+        msg: "Timeout waiting for logs from elk clients"
+      when: "test_log.failed"  
 ...
 

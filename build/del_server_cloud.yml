@@ -13,6 +13,6 @@
     vm_group: "logstash"  
     vm_name: "logstash_remote"
 - import_playbook: del_res.yml
-- import_playbook: del_elk_client.yml 
+
 
       

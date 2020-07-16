@@ -30,7 +30,7 @@
         
     - name: Ensure non-whitelisted.log does not exist
       file:
-        path: "{{logs_path}}/non-whitelisted.log"
+        path: "{{logstash_logs_path}}/non-whitelisted.log"
         state: absent
  
     - name: Ensure Logstash is not running
@@ -49,13 +49,18 @@
         
     - name: check if non-whitelisted.log was created
       wait_for:
-        path: "{{logs_path}}/non-whitelisted.log"
+        path: "{{logstash_logs_path}}/non-whitelisted.log"
         state: present
         msg: Timeout waiting for a compliance violation
         timeout: 1650
       register: test_log
+      ignore_errors: yes
       
     - name: Ensure the task created above is killed
-      shell: "Taskkill /IM java.exe /F" 
+      shell: "Taskkill /IM java.exe /F"
+      
+    - fail:
+        msg: "Timeout waiting for logs from elk clients"
+      when: "test_log.failed" 
 ...
 

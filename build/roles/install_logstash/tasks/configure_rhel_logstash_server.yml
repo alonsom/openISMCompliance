@@ -68,8 +68,8 @@
 
 - name: Configure Logstash test filter script
   copy:
-    src: test.ps1
-    dest: "{{logstash_config_path}}/test.ps1"
+    src: test.sh
+    dest: "{{logstash_config_path}}/test.sh"
     force: yes
 
 - name: Configure Logstash filter file

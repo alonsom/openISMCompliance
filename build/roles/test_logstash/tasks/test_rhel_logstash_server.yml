@@ -6,21 +6,15 @@
     
     - name: Ensure test.log does not exist
       file:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/test.log"
         state: absent
-        
-    - debug:
-        msg: "executable={{logstash_bin_path}}/logstash"
-
-    - debug:
-        msg: "logstash_config_path={{logstash_config_path}}"
         
     - name: Test a trivial filter in Logstash
       when: confirm_test == 'yes'
       shell:
         cmd: "sh /etc/logstash/test.sh"
       register: run_logstash_test
-      async: 600  # Maximum runtime in seconds. Adjust as needed.
+      async: 350  # Maximum runtime in seconds. Adjust as needed.
       poll: 0  # Fire and continue (never poll)
 
     - debug:
@@ -28,10 +22,10 @@
 
     - name: check if test.log was created
       wait_for:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/test.log"
         state: present
         msg: Timeout waiting for logs from elk clients
-        timeout: 650
+        timeout: 355
       register: test_log
 ...
 

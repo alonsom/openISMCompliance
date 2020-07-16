@@ -27,9 +27,9 @@
         dest: "{{logstash_config_path}}/sendEmail.ps1"
         force: yes
         
-    - name: Ensure test.log does not exist
+    - name: Ensure non-whitelisted.log does not exist
       win_file:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/non-whitelisted.log"
         state: absent
 
     - name: Ensure Logstash is not running
@@ -39,24 +39,27 @@
     - name: Test a trivial filter in Logstash
       when: confirm_test == 'yes'
       win_shell: "powershell.exe  -ExecutionPolicy UnRestricted -File '{{logstash_config_path}}/testResponse.ps1'"
-#        cmd: 'powershell.exe ../bin/logstash.bat -f testFilter.conf'
-#        chdir: "{{logstash_config_path}} "
       register: run_logstash_test
-      async: 600  # Maximum runtime in seconds. Adjust as needed.
+      async: 1600  # Maximum runtime in seconds. Adjust as needed.
       poll: 0
 
     - debug:
         msg: "Waiting for receiving logs from ELK clients with {{run_logstash_test}}" 
         
-    - name: check if test.log was created
+    - name: check if non-whitelisted.log was created
       win_wait_for:
-        path: "{{logs_path}}/test.log"
+        path: "{{logstash_logs_path}}/non-whitelisted.log"
         state: present
         msg: Timeout waiting for logs from elk clients
-        timeout: 650
+        timeout: 1650
       register: test_log
+      ignore_errors: yes
 
     - name: Ensure the task created above is killed
       win_shell: "Taskkill /IM java.exe /F"
+      
+    - fail:
+        msg: "Timeout waiting for logs from elk clients"
+      when: "test_log.failed"
 ...
 
