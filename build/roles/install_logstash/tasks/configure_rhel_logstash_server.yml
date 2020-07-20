@@ -67,7 +67,7 @@
     force: yes
 
 - name: Configure Logstash test filter script
-  copy:
+  template:
     src: test.sh
     dest: "{{logstash_config_path}}/test.sh"
     force: yes
