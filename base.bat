@@ -8,10 +8,11 @@ set CIGWIN_PATH=C:\cygwin64
 set JAVA_VERSION=11
 set JAVA_ZIP=openjdk-%JAVA_VERSION%+28_windows-x64_bin.zip
 set ELASTIC_VERSION=7.7.0
-set LOGSTASH_PATH=C:/logstash-%ELASTIC_VERSION%
 REM
 REM Do not change from here
 REM
+set AZURE_CLI_PATH=C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin
+set LOGSTASH_PATH=C:/logstash-%ELASTIC_VERSION%
 set ANSIBLE_CONFIG=/tmp/build/ansible.cfg
 REM Basic setup including any download required
 cd %~dp0
@@ -23,6 +24,8 @@ echo If the install of cygwin failed, it might be your antivirus.
 echo    please scan any .exe downloaded (e.g. setup-x86_64.exe), disable your antivirus, remove C:\cygwin64, install again and enable the antivirus back
 goto skip_delete
 :skip_download_script_error
+REM Fix the Path the first time
+set Path=%AZURE_CLI_PATH%;%Path%
 REM Remove all project (just in case)
 RMDIR /Q/S %CIGWIN_PATH%\tmp\build
 
